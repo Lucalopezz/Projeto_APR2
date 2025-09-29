@@ -9,9 +9,7 @@
 #define MAX_ENDERECO 200
 #define MAX_REGISTROS 1000
 
-#define CLIENTE_INICIAL 50
-#define SERVICO_INICIAL 20
-#define CLIENTE_SERVICO_INICIAL 20
+#define CAPACIDADE_INICIAL 20
 
 #define ARQUIVO_CLIENTES "clientes.dat"
 #define ARQUIVO_SERVICOS "servicos.dat"
@@ -147,12 +145,13 @@ void menu_principal() {
 }
 void submenu_clientes() {
     int opcao;
-    Cliente *clientes = NULL;
+    Cliente clientes = NULL;
+    int count = 0;
     int capacidade = 0;
     
     printf("\nCarregando dados dos clientes...\n");
     // como o clientes é um ponteiro, passo o endereço dele
-    //carregar_clientes(&clientes, &capacidade);
+    carregar_clientes(&clientes,&count, &capacidade);
     
     do {
         printf("\n=== SUBMENU CLIENTES ===\n");
@@ -322,4 +321,45 @@ void submenu_relatorios() {
                 printf("Opcao invalida!\n");
         }
     } while (opcao != 4);
+}
+
+void carregar_clientes(Cliente **clientes, int *count, int *capacidade) {
+    // Ponteiro de arquivo para leitura
+    FILE *arquivo = fopen(ARQUIVO_CLIENTES, "rb");
+    
+    // Se estiver nulo, o arquivo não existe
+    if (arquivo == NULL) {
+        printf("Arquivo de clientes nao existe. Iniciando com lista vazia.\n");
+        *clientes = (Cliente*)malloc(CAPACIDADE_INICIAL * sizeof(Cliente));
+        *count = 0;
+        *capacidade = CAPACIDADE_INICIAL;
+        return;
+    }
+    
+    // Descobre quantos registros tem no arquivo
+    fseek(arquivo, 0, SEEK_END);
+    long tamanho = ftell(arquivo);
+    // Com o tamanho do arquivo, descubro quantos registros tem
+    *count = tamanho / sizeof(Cliente);
+    fseek(arquivo, 0, SEEK_SET);
+    
+    // Aloca memória para os registros
+    *capacidade = (*count > CAPACIDADE_INICIAL) ? *count : CAPACIDADE_INICIAL; // If ternario igual do JS
+    *clientes = (Cliente*)malloc(*capacidade * sizeof(Cliente));
+    
+    if (*clientes == NULL) {
+        printf("Erro ao alocar memoria!\n");
+        *count = 0;
+        *capacidade = 0;
+        fclose(arquivo);
+        return;
+    }
+    
+    // Lê os dados
+    if (*count > 0) {
+        fread(*clientes, sizeof(Cliente), *count, arquivo);
+        printf("Carregados %d clientes do arquivo.\n", *count);
+    }
+    
+    fclose(arquivo);
 }
