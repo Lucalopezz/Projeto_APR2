@@ -192,7 +192,8 @@ void submenu_clientes() {
                 break;
             case 6:
                 printf("Salvando dados dos clientes...\n");
-                //salvar_clientes();
+                // Como não vai alterar o ponteiro, passo só o clientes, não o endereço dele
+                salvar_clientes(clientes, count);
                 break;
             default:
                 printf("Opcao invalida!\n");
@@ -281,13 +282,16 @@ int incluir_cliente(Cliente **clientes, int *count, int *capacidade) {
     printf("Nome: ");
     fgets(novo.nome, MAX_STRING, stdin);
     novo.nome[strcspn(novo.nome, "\n")] = '\0';
-    
-    printf("Telefone Fixo: ");
-    scanf("%s", novo.telefone_fixo);
+
+    // BUG AQUI, NOME FICA JUNTO COM O ENDEREÇO -> acho q acontece pq o scanf do cpf é bugado
 
     printf("Endereco: ");
     fgets(novo.endereco, MAX_ENDERECO, stdin);
     novo.endereco[strcspn(novo.endereco, "\n")] = '\0';
+    
+    printf("Telefone Fixo: ");
+    scanf("%s", novo.telefone_fixo);
+
     
     printf("Telefone Celular: ");
     scanf("%s", novo.telefone_celular);
