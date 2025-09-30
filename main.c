@@ -64,10 +64,10 @@ void salvar_clientes(Cliente *clientes, int count);
 // Funções para clientes
 // void listar_todos_clientes(Cliente *clientes, int count);
 // void listar_cliente_especifico(Cliente *clientes, int count);
-// int incluir_cliente(Cliente **clientes, int *count, int *capacidade);
+int incluir_cliente(Cliente **clientes, int *count, int *capacidade);
 // int alterar_cliente(Cliente *clientes, int count);
 // int excluir_cliente(Cliente **clientes, int *count);
-// int buscar_cliente_por_cpf(Cliente *clientes, int count, const char cpf[]);
+int buscar_cliente_por_cpf(Cliente *clientes, int count, const char cpf[]);
 // int cliente_existe(Cliente *clientes, int count, const char cpf[]);
 
 // Funções para serviços
@@ -143,14 +143,18 @@ void menu_principal() {
         }
     } while (opcao != 5);
 }
+
+// ================= Cliente ====================
 void submenu_clientes() {
     int opcao;
-    Cliente clientes = NULL;
+    Cliente *clientes = NULL;
+    // Representa quantos clientes estão armazenados
     int count = 0;
+    // Representa a capacidade atual do vetor
     int capacidade = 0;
     
     printf("\nCarregando dados dos clientes...\n");
-    // como o clientes é um ponteiro, passo o endereço dele
+    // Como o clientes é um ponteiro, passo o endereço dele
     carregar_clientes(&clientes,&count, &capacidade);
     
     do {
@@ -173,7 +177,12 @@ void submenu_clientes() {
                 //listar_cliente_especifico();
                 break;
             case 3:
-                //incluir_cliente();
+                int result = incluir_cliente(&clientes, &count, &capacidade);
+                if (result == 1) {
+                    printf("Cliente incluido com sucesso! Total: %d clientes.\n", count);
+                }else{
+                    printf("Erro ao incluir cliente.\n");
+                }
                 break;
             case 4:
                 //alterar_cliente();
@@ -190,6 +199,119 @@ void submenu_clientes() {
         }
     } while (opcao != 6);
 }
+void carregar_clientes(Cliente **clientes, int *count, int *capacidade) {
+    // Ponteiro de arquivo para leitura
+    FILE *arquivo = fopen(ARQUIVO_CLIENTES, "rb");
+    
+    // Se estiver nulo, o arquivo não existe
+    if (arquivo == NULL) {
+        printf("Arquivo de clientes nao existe. Iniciando com lista vazia.\n");
+        *clientes = (Cliente*)malloc(CAPACIDADE_INICIAL * sizeof(Cliente));
+        *count = 0;
+        *capacidade = CAPACIDADE_INICIAL;
+        return;
+    }
+    
+    // Descobre quantos registros tem no arquivo
+    fseek(arquivo, 0, SEEK_END);
+    long tamanho = ftell(arquivo);
+    // Com o tamanho do arquivo, descubro quantos registros tem
+    *count = tamanho / sizeof(Cliente);
+    fseek(arquivo, 0, SEEK_SET);
+    
+    // Aloca memória para os registros
+    *capacidade = (*count > CAPACIDADE_INICIAL) ? *count : CAPACIDADE_INICIAL; // If ternario igual do JS
+    *clientes = (Cliente*)malloc(*capacidade * sizeof(Cliente));
+    
+    if (*clientes == NULL) {
+        printf("Erro ao alocar memoria!\n");
+        *count = 0;
+        *capacidade = 0;
+        fclose(arquivo);
+        return;
+    }
+    
+    // Lê os dados
+    if (*count > 0) {
+        fread(*clientes, sizeof(Cliente), *count, arquivo);
+        printf("Carregados %d clientes do arquivo.\n", *count);
+    }
+    
+    fclose(arquivo);
+}
+
+void salvar_clientes(Cliente *clientes, int count) {
+    FILE *arquivo = fopen(ARQUIVO_CLIENTES, "wb");
+    
+    if (arquivo == NULL) {
+        printf("Erro ao salvar clientes!\n");
+        return;
+    }
+    
+    if (count > 0) {
+        fwrite(clientes, sizeof(Cliente), count, arquivo);
+        printf("Salvos %d clientes no arquivo.\n", count);
+    }
+    
+    fclose(arquivo);
+}
+
+int incluir_cliente(Cliente **clientes, int *count, int *capacidade) {
+    // Verifica se precisa aumentar capacidade
+    if (*count >= *capacidade) {
+        *capacidade *= 2;
+        *clientes = (Cliente*)realloc(*clientes, *capacidade * sizeof(Cliente));
+        if (*clientes == NULL) {
+            printf("Erro ao alocar memoria!\n");
+            return 0;
+        }
+        printf("Capacidade aumentada para %d clientes.\n", *capacidade);
+    }
+    
+    Cliente novo;
+    
+    printf("\n=== INCLUIR CLIENTE ===\n");
+    printf("CPF: ");
+    scanf("%s", novo.cpf);
+    
+    if (buscar_cliente_por_cpf(*clientes, *count, novo.cpf) != -1) {
+        return 0;
+    }
+    
+    printf("Nome: ");
+    fgets(novo.nome, MAX_STRING, stdin);
+    novo.nome[strcspn(novo.nome, "\n")] = '\0';
+    
+    printf("Telefone Fixo: ");
+    scanf("%s", novo.telefone_fixo);
+
+    printf("Endereco: ");
+    fgets(novo.endereco, MAX_ENDERECO, stdin);
+    novo.endereco[strcspn(novo.endereco, "\n")] = '\0';
+    
+    printf("Telefone Celular: ");
+    scanf("%s", novo.telefone_celular);
+    
+    printf("Data de Nascimento:\n");
+    novo.data_nascimento = ler_data();
+    
+    // Adiciona ao vetor, pegando o endereço do próximo espaço livre
+    (*clientes)[*count] = novo;
+    (*count)++;
+    
+    return 1;
+}
+
+int buscar_cliente_por_cpf(Cliente *clientes, int count, const char cpf[]) {
+    for (int i = 0; i < count; i++) {
+        if (strcmp(clientes[i].cpf, cpf) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
 
 void submenu_servicos() {
     int opcao;
@@ -323,43 +445,13 @@ void submenu_relatorios() {
     } while (opcao != 4);
 }
 
-void carregar_clientes(Cliente **clientes, int *count, int *capacidade) {
-    // Ponteiro de arquivo para leitura
-    FILE *arquivo = fopen(ARQUIVO_CLIENTES, "rb");
-    
-    // Se estiver nulo, o arquivo não existe
-    if (arquivo == NULL) {
-        printf("Arquivo de clientes nao existe. Iniciando com lista vazia.\n");
-        *clientes = (Cliente*)malloc(CAPACIDADE_INICIAL * sizeof(Cliente));
-        *count = 0;
-        *capacidade = CAPACIDADE_INICIAL;
-        return;
-    }
-    
-    // Descobre quantos registros tem no arquivo
-    fseek(arquivo, 0, SEEK_END);
-    long tamanho = ftell(arquivo);
-    // Com o tamanho do arquivo, descubro quantos registros tem
-    *count = tamanho / sizeof(Cliente);
-    fseek(arquivo, 0, SEEK_SET);
-    
-    // Aloca memória para os registros
-    *capacidade = (*count > CAPACIDADE_INICIAL) ? *count : CAPACIDADE_INICIAL; // If ternario igual do JS
-    *clientes = (Cliente*)malloc(*capacidade * sizeof(Cliente));
-    
-    if (*clientes == NULL) {
-        printf("Erro ao alocar memoria!\n");
-        *count = 0;
-        *capacidade = 0;
-        fclose(arquivo);
-        return;
-    }
-    
-    // Lê os dados
-    if (*count > 0) {
-        fread(*clientes, sizeof(Cliente), *count, arquivo);
-        printf("Carregados %d clientes do arquivo.\n", *count);
-    }
-    
-    fclose(arquivo);
+Data ler_data() {
+    Data data;
+    printf("Dia: ");
+    scanf("%d", &data.dia);
+    printf("Mes: ");
+    scanf("%d", &data.mes);
+    printf("Ano: ");
+    scanf("%d", &data.ano);
+    return data;
 }
