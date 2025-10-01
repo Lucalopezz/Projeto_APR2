@@ -101,6 +101,7 @@ Data ler_data();
 void imprimir_data(Data data);
 int comparar_datas(Data d1, Data d2);
 int data_no_ultimo_mes(Data data);
+void limpar_buffer();
 
 int main() {
     printf("=== SISTEMA DE SALAO DE BELEZA ===\n\n");
@@ -274,6 +275,7 @@ int incluir_cliente(Cliente **clientes, int *count, int *capacidade) {
     printf("\n=== INCLUIR CLIENTE ===\n");
     printf("CPF: ");
     scanf("%s", novo.cpf);
+    limpar_buffer();
     
     if (buscar_cliente_por_cpf(*clientes, *count, novo.cpf) != -1) {
         return 0;
@@ -283,7 +285,6 @@ int incluir_cliente(Cliente **clientes, int *count, int *capacidade) {
     fgets(novo.nome, MAX_STRING, stdin);
     novo.nome[strcspn(novo.nome, "\n")] = '\0';
 
-    // BUG AQUI, NOME FICA JUNTO COM O ENDEREÇO -> acho q acontece pq o scanf do cpf é bugado
 
     printf("Endereco: ");
     fgets(novo.endereco, MAX_ENDERECO, stdin);
@@ -458,4 +459,9 @@ Data ler_data() {
     printf("Ano: ");
     scanf("%d", &data.ano);
     return data;
+}
+void limpar_buffer() {
+    int c;
+    // EOF = End Of File
+    while ((c = getchar()) != '\n' && c != EOF);
 }
