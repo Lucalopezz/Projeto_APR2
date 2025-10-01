@@ -65,10 +65,9 @@ void salvar_clientes(Cliente *clientes, int count);
 void listar_todos_clientes(Cliente *clientes, int count);
 void listar_cliente_especifico(Cliente *clientes, int count);
 int incluir_cliente(Cliente **clientes, int *count, int *capacidade);
-// int alterar_cliente(Cliente *clientes, int count);
+int alterar_cliente(Cliente *clientes, int count);
 // int excluir_cliente(Cliente **clientes, int *count);
 int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]);
-// int cliente_existe(Cliente *clientes, int count,  char cpf[]);
 
 // Funções para serviços
 // void listar_todos_servicos(Servico *servicos, int count);
@@ -77,7 +76,6 @@ int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]);
 // int alterar_servico(Servico *servicos, int count);
 // int excluir_servico(Servico **servicos, int *count);
 // int buscar_servico_por_codigo(Servico *servicos, int count, int codigo);
-// int servico_existe(Servico *servicos, int count, int codigo);
 
 // Funções para cliente_servico
 // void listar_todos_cliente_servico(ClienteServico *cs, int count);
@@ -86,7 +84,6 @@ int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]);
 // int alterar_cliente_servico(ClienteServico *cs, int count);
 // int excluir_cliente_servico(ClienteServico **cs, int *count);
 // int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo, Data data);
-// int cliente_servico_existe(ClienteServico *cs, int count, char cpf[], int codigo, Data data);
 
 // Funções de relatórios
 // void relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count);
@@ -181,15 +178,18 @@ void submenu_clientes() {
                 listar_cliente_especifico(clientes, count);
                 break;
             case 3:
-                int result = incluir_cliente(&clientes, &count, &capacidade);
-                if (result == 1) {
+                if (incluir_cliente(&clientes, &count, &capacidade)) {
                     printf("Cliente incluido com sucesso! Total: %d clientes.\n", count);
                 }else{
-                    printf("Erro ao incluir cliente.\n");
+                    printf("Erro ao incluir cliente. Verifique se voce ja nao esta cadastrado.\n");
                 }
                 break;
             case 4:
-                //alterar_cliente();
+                if(alterar_cliente(clientes, count)) {
+                    printf("Cliente alterado com sucesso!\n");
+                } else {
+                    printf("Erro ao alterar cliente. Verifique se o CPF esta correto.\n");
+                }
                 break;
             case 5:
                 //excluir_cliente();
@@ -318,6 +318,7 @@ int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]) {
     }
     return -1;
 }
+
 void listar_todos_clientes(Cliente *clientes, int count) {
     if (count == 0) {
         printf("Nenhum cliente cadastrado!\n");
@@ -356,6 +357,41 @@ void listar_cliente_especifico(Cliente *clientes, int count) {
     printf("Data de Nascimento: ");
     imprimir_data(clientes[indice].data_nascimento);
     printf("\n");
+}
+int alterar_cliente(Cliente *clientes, int count){
+    char cpf[MAX_CPF];
+    printf("Digite o CPF do cliente a alterar: ");
+    scanf("%s", cpf);
+    limpar_buffer();
+    
+    int indice = buscar_cliente_por_cpf(clientes, count, cpf);
+    if (indice == -1) {
+        return 0;
+    }
+    
+    printf("\n=== DADOS ATUAIS ===\n");
+    printf("Nome: %s\n", clientes[indice].nome);
+    printf("Endereco: %s\n", clientes[indice].endereco);
+    printf("Telefone Fixo: %s\n", clientes[indice].telefone_fixo);
+    printf("Telefone Celular: %s\n", clientes[indice].telefone_celular);
+    
+    printf("\n=== NOVOS DADOS ===\n");
+    
+    printf("Nome: ");
+    fgets(clientes[indice].nome, MAX_STRING, stdin);
+    clientes[indice].nome[strcspn(clientes[indice].nome, "\n")] = 0;
+    
+    printf("Endereco: ");
+    fgets(clientes[indice].endereco, MAX_ENDERECO, stdin);
+    clientes[indice].endereco[strcspn(clientes[indice].endereco, "\n")] = 0;
+    
+    printf("Telefone Fixo: ");
+    scanf("%s", clientes[indice].telefone_fixo);
+    
+    printf("Telefone Celular: ");
+    scanf("%s", clientes[indice].telefone_celular);
+
+    return 1;
 }
 
 
