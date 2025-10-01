@@ -62,13 +62,13 @@ void salvar_clientes(Cliente *clientes, int count);
 // void salvar_cliente_servicos(ClienteServico *cs, int count);
 
 // Funções para clientes
-// void listar_todos_clientes(Cliente *clientes, int count);
-// void listar_cliente_especifico(Cliente *clientes, int count);
+void listar_todos_clientes(Cliente *clientes, int count);
+void listar_cliente_especifico(Cliente *clientes, int count);
 int incluir_cliente(Cliente **clientes, int *count, int *capacidade);
 // int alterar_cliente(Cliente *clientes, int count);
 // int excluir_cliente(Cliente **clientes, int *count);
-int buscar_cliente_por_cpf(Cliente *clientes, int count, const char cpf[]);
-// int cliente_existe(Cliente *clientes, int count, const char cpf[]);
+int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]);
+// int cliente_existe(Cliente *clientes, int count,  char cpf[]);
 
 // Funções para serviços
 // void listar_todos_servicos(Servico *servicos, int count);
@@ -85,8 +85,8 @@ int buscar_cliente_por_cpf(Cliente *clientes, int count, const char cpf[]);
 // int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 // int alterar_cliente_servico(ClienteServico *cs, int count);
 // int excluir_cliente_servico(ClienteServico **cs, int *count);
-// int buscar_cliente_servico(ClienteServico *cs, int count, const char cpf[], int codigo, Data data);
-// int cliente_servico_existe(ClienteServico *cs, int count, const char cpf[], int codigo, Data data);
+// int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo, Data data);
+// int cliente_servico_existe(ClienteServico *cs, int count, char cpf[], int codigo, Data data);
 
 // Funções de relatórios
 // void relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count);
@@ -148,6 +148,7 @@ void menu_principal() {
 // ================= Cliente ====================
 void submenu_clientes() {
     int opcao;
+    // Em vez de criar um vetor, criei um ponteiro que vai iniciar um vetor dinâmico
     Cliente *clientes = NULL;
     // Representa quantos clientes estão armazenados
     int count = 0;
@@ -155,7 +156,7 @@ void submenu_clientes() {
     int capacidade = 0;
     
     printf("\nCarregando dados dos clientes...\n");
-    // Como o clientes é um ponteiro, passo o endereço dele
+    // Como o clientes é um ponteiro que inicia um vetor de Clientes e pode ser realocado, passo o endereço dele
     carregar_clientes(&clientes,&count, &capacidade);
     
     do {
@@ -172,10 +173,12 @@ void submenu_clientes() {
 
         switch(opcao) {
             case 1:
-                //listar_todos_clientes();
+                // Passo só o clientes, pq não vou alterar o ponteiro
+                // clintes é o endereço do primeiro cliente do vetor
+                listar_todos_clientes(clientes, count);
                 break;
             case 2:
-                //listar_cliente_especifico();
+                listar_cliente_especifico(clientes, count);
                 break;
             case 3:
                 int result = incluir_cliente(&clientes, &count, &capacidade);
@@ -307,13 +310,52 @@ int incluir_cliente(Cliente **clientes, int *count, int *capacidade) {
     return 1;
 }
 
-int buscar_cliente_por_cpf(Cliente *clientes, int count, const char cpf[]) {
+int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]) {
     for (int i = 0; i < count; i++) {
         if (strcmp(clientes[i].cpf, cpf) == 0) {
             return i;
         }
     }
     return -1;
+}
+void listar_todos_clientes(Cliente *clientes, int count) {
+    if (count == 0) {
+        printf("Nenhum cliente cadastrado!\n");
+        return;
+    }
+    
+    for (int i = 0; i < count; i++) {
+        printf("CPF: %s\n", clientes[i].cpf);
+        printf("Nome: %s\n", clientes[i].nome);
+        printf("Endereco: %s\n", clientes[i].endereco);
+        printf("Telefone Fixo: %s\n", clientes[i].telefone_fixo);
+        printf("Telefone Celular: %s\n", clientes[i].telefone_celular);
+        printf("Data de Nascimento: ");
+        imprimir_data(clientes[i].data_nascimento);
+        printf("\n-------------------------\n");
+    }
+}
+
+void listar_cliente_especifico(Cliente *clientes, int count) {
+    char cpf[MAX_CPF];
+    printf("Digite o CPF do cliente: ");
+    scanf("%s", cpf);
+    
+    // Passo so o clientes(endereço do primeiro cliente do ponteiro/vetor inicial), pq não vou alterar o ponteiro
+    int indice = buscar_cliente_por_cpf(clientes, count, cpf);
+    if (indice == -1) {
+        printf("Cliente nao encontrado!\n");
+        return;
+    }
+    
+    printf("CPF: %s\n", clientes[indice].cpf);
+    printf("Nome: %s\n", clientes[indice].nome);
+    printf("Endereco: %s\n", clientes[indice].endereco);
+    printf("Telefone Fixo: %s\n", clientes[indice].telefone_fixo);
+    printf("Telefone Celular: %s\n", clientes[indice].telefone_celular);
+    printf("Data de Nascimento: ");
+    imprimir_data(clientes[indice].data_nascimento);
+    printf("\n");
 }
 
 
@@ -459,6 +501,9 @@ Data ler_data() {
     printf("Ano: ");
     scanf("%d", &data.ano);
     return data;
+}
+void imprimir_data(Data data) {
+    printf("%02d/%02d/%04d", data.dia, data.mes, data.ano);
 }
 void limpar_buffer() {
     int c;
