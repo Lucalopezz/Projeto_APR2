@@ -217,12 +217,12 @@ void carregar_clientes(Cliente **clientes, int *count, int *capacidade) {
         return;
     }
     
-    // Descobre quantos registros tem no arquivo
-    fseek(arquivo, 0, SEEK_END);
-    long tamanho = ftell(arquivo);
+    
+    fseek(arquivo, 0, SEEK_END);// -> move o ponteiro para o final do arquivo
+    long tamanho = ftell(arquivo); // -> retorna o tamanho do registro
     // Com o tamanho do arquivo, descubro quantos registros tem
     *count = tamanho / sizeof(Cliente);
-    fseek(arquivo, 0, SEEK_SET);
+    fseek(arquivo, 0, SEEK_SET); //-> move o ponteiro para o início do arquivo para começar a ler os registros
     
     // Aloca memória para os registros
     *capacidade = (*count > CAPACIDADE_INICIAL) ? *count : CAPACIDADE_INICIAL; // If ternario igual do JS
@@ -264,7 +264,7 @@ void salvar_clientes(Cliente *clientes, int count) {
 int incluir_cliente(Cliente **clientes, int *count, int *capacidade) {
     // Verifica se precisa aumentar capacidade
     if (*count >= *capacidade) {
-        *capacidade *= 2;
+        *capacidade += CAPACIDADE_INICIAL;
         *clientes = (Cliente*)realloc(*clientes, *capacidade * sizeof(Cliente));
         if (*clientes == NULL) {
             printf("Erro ao alocar memoria!\n");
