@@ -66,7 +66,7 @@ void listar_todos_clientes(Cliente *clientes, int count);
 void listar_cliente_especifico(Cliente *clientes, int count);
 int incluir_cliente(Cliente **clientes, int *count, int *capacidade);
 int alterar_cliente(Cliente *clientes, int count);
-// int excluir_cliente(Cliente **clientes, int *count);
+int excluir_cliente(Cliente *clientes, int *count);
 int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]);
 
 // Funções para serviços
@@ -99,6 +99,7 @@ void imprimir_data(Data data);
 int comparar_datas(Data d1, Data d2);
 int data_no_ultimo_mes(Data data);
 void limpar_buffer();
+int confirmar_operacao(char operacao[]);
 
 int main() {
     printf("=== SISTEMA DE SALAO DE BELEZA ===\n\n");
@@ -192,7 +193,11 @@ void submenu_clientes() {
                 }
                 break;
             case 5:
-                //excluir_cliente();
+                if(excluir_cliente(clientes, &count)) {
+                    printf("Cliente excluido com sucesso!\n");
+                } else {
+                    printf("Erro ao excluir cliente. Verifique se o CPF esta correto.\n");
+                }
                 break;
             case 6:
                 printf("Salvando dados dos clientes...\n");
@@ -394,7 +399,34 @@ int alterar_cliente(Cliente *clientes, int count){
     return 1;
 }
 
+int excluir_cliente(Cliente *clientes, int *count) {
+    char cpf[MAX_CPF];
+    printf("Digite o CPF do cliente a excluir: ");
+    scanf("%s", cpf);
+    
+    int indice = buscar_cliente_por_cpf(clientes, *count, cpf);
+    if (indice == -1) {
+        printf("Cliente nao encontrado!\n");
+        return 0;
+    }
+    printf("\n=== DADOS DO CLIENTE ===\n");
+    printf("CPF: %s\n", clientes[indice].cpf);
+    printf("Nome: %s\n", clientes[indice].nome);
 
+    int confirmar = confirmar_operacao("excluir este cliente");
+
+    if (confirmar == 0) {
+        return 0;
+    }
+    
+    int i;
+    for (i = indice; i < *count - 1; i++) {
+        clientes[i] = clientes[i + 1];
+    }
+    
+    (*count)--;
+    return 1;
+}
 
 void submenu_servicos() {
     int opcao;
@@ -545,4 +577,16 @@ void limpar_buffer() {
     int c;
     // EOF = End Of File
     while ((c = getchar()) != '\n' && c != EOF);
+}
+int confirmar_operacao(char operacao[]) {
+    char resposta;
+    printf("Tem certeza que deseja %s? (s/n): ", operacao);
+    scanf(" %c", &resposta);
+    limpar_buffer();
+    if (resposta == 's' || resposta == 'S') {
+        return 1;
+    } 
+
+    return 0;
+    
 }
