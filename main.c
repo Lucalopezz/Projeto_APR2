@@ -73,9 +73,9 @@ int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]);
 void listar_todos_servicos(Servico *servicos, int count);
 void listar_servico_especifico(Servico *servicos, int count);
 Servico *incluir_servico(Servico *servicos, int *count, int *capacidade);
-// int alterar_servico(Servico *servicos, int count);
-// int excluir_servico(Servico **servicos, int *count);
- int buscar_servico_por_codigo(Servico *servicos, int count, int codigo);
+Servico *alterar_servico(Servico *servicos, int count);
+int excluir_servico(Servico *servicos, int *count);
+int buscar_servico_por_codigo(Servico *servicos, int count, int codigo);
 
 // Funções para cliente_servico
 // void listar_todos_cliente_servico(ClienteServico *cs, int count);
@@ -464,10 +464,14 @@ void submenu_servicos() {
                 servicos = incluir_servico(servicos, &count, &capacidade);
                 break;
             case 4:
-                //alterar_servico();
+                servicos = alterar_servico(servicos, count);
                 break;
             case 5:
-                //excluir_servico();
+                if (excluir_servico(servicos, &count)){
+                    printf("Servico excluido com sucesso!\n");
+                } else {
+                    printf("Erro ao excluir servico. Verifique se o codigo esta correto.\n");
+                }
                 break;
             case 6:
                 printf("Salvando dados dos servicos...\n");
@@ -609,6 +613,64 @@ void listar_servico_especifico(Servico *servicos, int count){
     printf("Descricao: %s\n", servicos[indice].descricao);
     printf("Preco: R$ %.2f\n", servicos[indice].preco);
 
+}
+
+Servico *alterar_servico(Servico *servicos, int count) {
+    int codigo;
+    printf("Digite o codigo do servico a alterar: ");
+    scanf("%d", &codigo);
+    limpar_buffer();
+    
+    int indice = buscar_servico_por_codigo(servicos, count, codigo);
+    if (indice == -1) {
+        printf("Servico nao encontrado!\n");
+        return servicos;
+    }
+    
+    printf("\n=== DADOS ATUAIS ===\n");
+    printf("Descricao: %s\n", servicos[indice].descricao);
+    printf("Preco: R$ %.2f\n", servicos[indice].preco);
+    
+    printf("\n=== NOVOS DADOS ===\n");
+    
+    printf("Descricao: ");
+    fgets(servicos[indice].descricao, MAX_STRING, stdin);
+    servicos[indice].descricao[strcspn(servicos[indice].descricao, "\n")] = 0;
+    
+    printf("Preco: ");
+    scanf("%f", &servicos[indice].preco);
+
+    printf("Servico alterado com sucesso!\n");
+    return servicos;
+}
+
+int excluir_servico(Servico *servicos, int *count){
+    int codigo;
+    printf("Digite o codigo do servico a excluir: ");
+    scanf("%d", &codigo);
+    
+    int indice = buscar_servico_por_codigo(servicos, *count, codigo);
+    if (indice == -1) {
+        printf("Servico nao encontrado!\n");
+        return 0;
+    }
+    printf("\n=== DADOS DO SERVICO ===\n");
+    printf("Codigo: %d\n", servicos[indice].codigo);
+    printf("Descricao: %s\n", servicos[indice].descricao);
+
+    int confirmar = confirmar_operacao("excluir este servico");
+
+    if (confirmar == 0) {
+        return 0;
+    }
+    
+    int i;
+    for (i = indice; i < *count - 1; i++) {
+        servicos[i] = servicos[i + 1];
+    }
+    
+    (*count)--;
+    return 1;
 }
 
 
