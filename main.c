@@ -54,8 +54,8 @@ void carregar_clientes(Cliente **clientes, int *count, int *capacidade);
 void salvar_clientes(Cliente *clientes, int count);
 
 // Funções de arquivo para serviços
-// void carregar_servicos(Servico **servicos, int *count, int *capacidade);
-// void salvar_servicos(Servico *servicos, int count);
+Servico *carregar_servicos(int *count, int *capacidade);
+void salvar_servicos(Servico *servicos, int count);
 
 // Funções de arquivo para cliente_servico
 // void carregar_cliente_servicos(ClienteServico **cs, int *count, int *capacidade);
@@ -155,6 +155,7 @@ void submenu_clientes() {
     
     printf("\nCarregando dados dos clientes...\n");
     // Como o clientes é um ponteiro que inicia um vetor de Clientes e pode ser realocado, passo o endereço dele
+    // So uso ponteiro de ponteiro pq tenho que realocar o vetor, mechendo no seu tamanho
     carregar_clientes(&clientes,&count, &capacidade);
     
     do {
@@ -213,7 +214,7 @@ void carregar_clientes(Cliente **clientes, int *count, int *capacidade) {
     // Ponteiro de arquivo para leitura
     FILE *arquivo = fopen(ARQUIVO_CLIENTES, "rb");
     
-    // Se estiver nulo, o arquivo não existe
+    // Se estiver nulo, o arquivo não existe 
     if (arquivo == NULL) {
         printf("Arquivo de clientes nao existe. Iniciando com lista vazia.\n");
         *clientes = (Cliente*)malloc(CAPACIDADE_INICIAL * sizeof(Cliente));
@@ -428,12 +429,13 @@ int excluir_cliente(Cliente *clientes, int *count) {
     return 1;
 }
 
+// ================= Servicos ====================
 void submenu_servicos() {
     int opcao;
-    Servico *servicos = NULL;
     int capacidade = 0;
+    int count = 0;
     printf("\nCarregando dados dos servicos...\n");
-    //carregar_servicos(&servicos, &capacidade);
+    Servico *servicos = carregar_servicos(&count, &capacidade);
     
     do {
         printf("\n=== SUBMENU SERVICOS ===\n");
@@ -471,6 +473,46 @@ void submenu_servicos() {
                 printf("Opcao invalida!\n");
         }
     } while (opcao != 6);
+}
+
+Servico *carregar_servicos(int *count, int *capacidade) {
+    FILE *arquivo = fopen(ARQUIVO_SERVICOS, "rb");
+    Servico *servicos = NULL;
+    
+    if (arquivo == NULL) {
+        printf("Arquivo de servicos nao existe. Iniciando com lista vazia.\n");
+        servicos = (Servico*)malloc(CAPACIDADE_INICIAL * sizeof(Servico));
+        *count = 0;
+        *capacidade = CAPACIDADE_INICIAL;
+        // Criar um arquivo de servicos vazio
+        arquivo = fopen(ARQUIVO_SERVICOS, "wb");
+        fclose(arquivo);
+        return servicos;
+    }
+    
+    fseek(arquivo, 0, SEEK_END);
+    long tamanho = ftell(arquivo);
+    *count = tamanho / sizeof(Servico);
+    fseek(arquivo, 0, SEEK_SET);
+   
+    *capacidade = (*count > CAPACIDADE_INICIAL) ? *count : CAPACIDADE_INICIAL;
+    servicos = (Servico*)malloc(*capacidade * sizeof(Servico));
+   
+    if (servicos == NULL) {
+        printf("Erro ao alocar memoria!\n");
+        *count = 0;
+        *capacidade = 0;
+        fclose(arquivo);
+        return NULL;
+    }
+   
+    if (*count > 0) {
+        fread(servicos, sizeof(Servico), *count, arquivo);
+        printf("Carregados %d servicos do arquivo.\n", *count);
+    }
+   
+    fclose(arquivo);
+    return servicos;
 }
 
 void submenu_cliente_servico() {
