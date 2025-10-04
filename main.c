@@ -72,10 +72,10 @@ int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]);
 // Funções para serviços
 // void listar_todos_servicos(Servico *servicos, int count);
 // void listar_servico_especifico(Servico *servicos, int count);
-// int incluir_servico(Servico **servicos, int *count, int *capacidade);
+Servico *incluir_servico(Servico *servicos, int *count, int *capacidade);
 // int alterar_servico(Servico *servicos, int count);
 // int excluir_servico(Servico **servicos, int *count);
-// int buscar_servico_por_codigo(Servico *servicos, int count, int codigo);
+ int buscar_servico_por_codigo(Servico *servicos, int count, int codigo);
 
 // Funções para cliente_servico
 // void listar_todos_cliente_servico(ClienteServico *cs, int count);
@@ -460,7 +460,7 @@ void submenu_servicos() {
                 //listar_servico_especifico();
                 break;
             case 3:
-                //incluir_servico();
+                servicos = incluir_servico(servicos, &count, &capacidade);
                 break;
             case 4:
                 //alterar_servico();
@@ -526,6 +526,52 @@ void salvar_servicos(Servico *servicos, int count) {
     }
     fwrite(servicos, sizeof(Servico), count, arquivo);
     fclose(arquivo);
+}
+
+Servico *incluir_servico(Servico *servicos, int *count, int *capacidade) {
+    if (*count >= *capacidade) {
+        *capacidade += CAPACIDADE_INICIAL;
+        servicos = (Servico*)realloc(servicos, *capacidade * sizeof(Servico));
+        if (servicos == NULL) {
+            printf("Erro ao alocar memoria!\n");
+            return servicos;
+        }
+    }
+    Servico novo;
+    printf("\n=== INCLUIR SERVICO ===\n");
+    printf("Codigo: ");
+    scanf("%d", &novo.codigo);
+    limpar_buffer();
+    
+    if (buscar_servico_por_codigo(servicos, *count, novo.codigo) != -1) {
+        printf("Erro: Servico com este codigo ja existe!\n");
+        // retorno serviços para manter a lista antiga
+        return servicos;
+    }
+    
+    printf("Descricao: ");
+    fgets(novo.descricao, MAX_STRING, stdin);
+    novo.descricao[strcspn(novo.descricao, "\n")] = 0;
+    
+    printf("Preco: ");
+    scanf("%f", &novo.preco);
+    
+    // Como não é ponteiro de ponteiro, igual nos clientes, passo so o valor q é o endereço
+    servicos[*count] = novo;
+    (*count)++;
+    
+    // Tratei aqui dentro, pois como retorno um ponteiro não tem como verificar no submenu
+    printf("Servico incluido com sucesso! Total: %d servicos.\n", *count);
+    return servicos;
+}
+
+int buscar_servico_por_codigo(Servico *servicos, int count, int codigo) {
+    for (int i = 0; i < count; i++) {
+        if (servicos[i].codigo == codigo) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 
