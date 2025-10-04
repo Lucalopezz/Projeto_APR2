@@ -470,7 +470,7 @@ void submenu_servicos() {
                 break;
             case 6:
                 printf("Salvando dados dos servicos...\n");
-                //salvar_servicos();
+                salvar_servicos(servicos, count);
                 break;
             default:
                 printf("Opcao invalida!\n");
@@ -517,6 +517,20 @@ Servico *carregar_servicos(int *count, int *capacidade) {
     fclose(arquivo);
     return servicos;
 }
+
+void salvar_servicos(Servico *servicos, int count) {
+    FILE *arquivo = fopen(ARQUIVO_SERVICOS, "wb");
+    if (arquivo == NULL) {
+        printf("Erro ao salvar servicos!\n");
+        return;
+    }
+    fwrite(servicos, sizeof(Servico), count, arquivo);
+    fclose(arquivo);
+}
+
+
+
+
 
 void submenu_cliente_servico() {
     int opcao;
