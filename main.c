@@ -220,6 +220,9 @@ void carregar_clientes(Cliente **clientes, int *count, int *capacidade) {
         *clientes = (Cliente*)malloc(CAPACIDADE_INICIAL * sizeof(Cliente));
         *count = 0;
         *capacidade = CAPACIDADE_INICIAL;
+        // Criar um arquivo de clientes vazio
+        arquivo = fopen(ARQUIVO_CLIENTES, "wb");
+        fclose(arquivo);
         return;
     }
     
