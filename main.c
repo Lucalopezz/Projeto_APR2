@@ -70,8 +70,8 @@ int excluir_cliente(Cliente *clientes, int *count);
 int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]);
 
 // Funções para serviços
-// void listar_todos_servicos(Servico *servicos, int count);
-// void listar_servico_especifico(Servico *servicos, int count);
+void listar_todos_servicos(Servico *servicos, int count);
+void listar_servico_especifico(Servico *servicos, int count);
 Servico *incluir_servico(Servico *servicos, int *count, int *capacidade);
 // int alterar_servico(Servico *servicos, int count);
 // int excluir_servico(Servico **servicos, int *count);
@@ -320,7 +320,8 @@ int incluir_cliente(Cliente **clientes, int *count, int *capacidade) {
 }
 
 int buscar_cliente_por_cpf(Cliente *clientes, int count, char cpf[]) {
-    for (int i = 0; i < count; i++) {
+    int i;
+    for (i = 0; i < count; i++) {
         if (strcmp(clientes[i].cpf, cpf) == 0) {
             return i;
         }
@@ -333,8 +334,8 @@ void listar_todos_clientes(Cliente *clientes, int count) {
         printf("Nenhum cliente cadastrado!\n");
         return;
     }
-    
-    for (int i = 0; i < count; i++) {
+    int i;
+    for (i = 0; i < count; i++) {
         printf("CPF: %s\n", clientes[i].cpf);
         printf("Nome: %s\n", clientes[i].nome);
         printf("Endereco: %s\n", clientes[i].endereco);
@@ -454,10 +455,10 @@ void submenu_servicos() {
         
         switch(opcao) {
             case 1:
-                //listar_todos_servicos();
+                listar_todos_servicos(servicos, count);
                 break;
             case 2:
-                //listar_servico_especifico();
+                listar_servico_especifico(servicos, count);
                 break;
             case 3:
                 servicos = incluir_servico(servicos, &count, &capacidade);
@@ -566,12 +567,48 @@ Servico *incluir_servico(Servico *servicos, int *count, int *capacidade) {
 }
 
 int buscar_servico_por_codigo(Servico *servicos, int count, int codigo) {
-    for (int i = 0; i < count; i++) {
+    int i;
+    for (i = 0; i < count; i++) {
         if (servicos[i].codigo == codigo) {
             return i;
         }
     }
     return -1;
+}
+
+void listar_todos_servicos(Servico *servicos, int count ){
+    printf("\n=== LISTA DE SERVICOS ===\n");
+    
+    if (count == 0) {
+        printf("Nenhum servico cadastrado.\n");
+        return;
+    }
+
+    int i;
+    for(i=0; i < count; i++){
+        printf("Codigo: %d\n", servicos[i].codigo);
+        printf("Descricao: %s\n", servicos[i].descricao);
+        printf("Preco: R$ %.2f\n", servicos[i].preco);
+        printf("-------------------------\n");
+    }
+
+}
+
+void listar_servico_especifico(Servico *servicos, int count){
+    int codigo;
+    printf("Digite o codigo do servico: ");
+    scanf("%d", &codigo);
+
+    int indice = buscar_servico_por_codigo(servicos, count, codigo);
+    if(indice == -1){
+        printf("Servico nao encontrado! \n");
+        return;
+    }
+    printf("\n=== DADOS DO SERVICO ===\n");
+    printf("Codigo: %d\n", servicos[indice].codigo);
+    printf("Descricao: %s\n", servicos[indice].descricao);
+    printf("Preco: R$ %.2f\n", servicos[indice].preco);
+
 }
 
 
