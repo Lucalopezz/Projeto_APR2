@@ -58,8 +58,8 @@ Servico *carregar_servicos(int *count, int *capacidade);
 void salvar_servicos(Servico *servicos, int count);
 
 // Funções de arquivo para cliente_servico
-// void carregar_cliente_servicos(ClienteServico **cs, int *count, int *capacidade);
-// void salvar_cliente_servicos(ClienteServico *cs, int count);
+void carregar_cliente_servicos(ClienteServico **cs, int *count, int *capacidade);
+void salvar_cliente_servicos(ClienteServico *cs, int count);
 
 // Funções para clientes
 void listar_todos_clientes(Cliente *clientes, int count);
@@ -680,9 +680,10 @@ int excluir_servico(Servico *servicos, int *count){
 void submenu_cliente_servico() {
     int opcao;
     ClienteServico *cliente_servicos = NULL;
+    int count = 0;
     int capacidade = 0;
     printf("\nCarregando dados dos agendamentos...\n");
-    //carregar_cliente_servicos(&cliente_servicos, &capacidade);
+    carregar_cliente_servicos(&cliente_servicos, &count, &capacidade);
     
     do {
         printf("\n=== SUBMENU CLIENTE/SERVICO ===\n");
@@ -714,13 +715,74 @@ void submenu_cliente_servico() {
                 break;
             case 6:
                 printf("Salvando dados dos agendamentos...\n");
-                //salvar_cliente_servicos();
+                salvar_cliente_servicos(cliente_servicos, count);
                 break;
             default:
                 printf("Opcao invalida!\n");
         }
     } while (opcao != 6);
 }
+void carregar_cliente_servicos(ClienteServico **cs, int *count, int *capacidade) {
+    FILE *arquivo = fopen(ARQUIVO_CLIENTE_SERVICO, "rb");
+    
+    if (arquivo == NULL) {
+        printf("Arquivo de cliente servico nao existe. Iniciando com lista vazia.\n");
+        *cs = (ClienteServico*)malloc(CAPACIDADE_INICIAL * sizeof(ClienteServico));
+        *count = 0;
+        *capacidade = CAPACIDADE_INICIAL;
+        arquivo = fopen(ARQUIVO_CLIENTE_SERVICO, "wb");
+        fclose(arquivo);
+        return;
+    }
+    
+    
+    fseek(arquivo, 0, SEEK_END);
+    long tamanho = ftell(arquivo);
+    *count = tamanho / sizeof(Cliente);
+    fseek(arquivo, 0, SEEK_SET);
+    
+    *capacidade = (*count > CAPACIDADE_INICIAL) ? *count : CAPACIDADE_INICIAL; 
+    *cs = (ClienteServico*)malloc(*capacidade * sizeof(ClienteServico));
+    
+    if (*cs == NULL) {
+        printf("Erro ao alocar memoria!\n");
+        *count = 0;
+        *capacidade = 0;
+        fclose(arquivo);
+        return;
+    }
+    
+    // Lê os dados
+    if (*count > 0) {
+        fread(*cs, sizeof(ClienteServico), *count, arquivo);
+        printf("Carregados %d clientes servico do arquivo.\n", *count);
+    }
+    
+    fclose(arquivo);
+}
+
+void salvar_cliente_servicos(ClienteServico *cs, int count) {
+    FILE *arquivo = fopen(ARQUIVO_CLIENTE_SERVICO, "wb");
+    
+    if (arquivo == NULL) {
+        printf("Erro ao salvar clientes!\n");
+        return;
+    }
+    
+    if (count > 0) {
+        fwrite(cs, sizeof(ClienteServico), count, arquivo);
+        printf("Salvos %d clientes no arquivo.\n", count);
+    }
+    
+    fclose(arquivo);
+}
+
+
+
+
+
+
+
 
 void submenu_relatorios() {
     int opcao;
