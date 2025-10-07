@@ -78,12 +78,12 @@ int excluir_servico(Servico *servicos, int *count);
 int buscar_servico_por_codigo(Servico *servicos, int count, int codigo);
 
 // Funções para cliente_servico
-// void listar_todos_cliente_servico(ClienteServico *cs, int count);
-// void listar_cliente_servico_especifico(ClienteServico *cs, int count);
-// int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
+void listar_todos_cliente_servico(ClienteServico *cs, int count);
+void listar_cliente_servico_especifico(ClienteServico *cs, int count);
+int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 // int alterar_cliente_servico(ClienteServico *cs, int count);
 // int excluir_cliente_servico(ClienteServico **cs, int *count);
-// int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo, Data data);
+int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo, Data data);
 
 // Funções de relatórios
 // void relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count);
@@ -209,6 +209,7 @@ void submenu_clientes() {
                 printf("Opcao invalida!\n");
         }
     } while (opcao != 6);
+    if (clientes != NULL) free(clientes);
 }
 void carregar_clientes(Cliente **clientes, int *count, int *capacidade) {
     // Ponteiro de arquivo para leitura
@@ -481,6 +482,7 @@ void submenu_servicos() {
                 printf("Opcao invalida!\n");
         }
     } while (opcao != 6);
+    if (servicos != NULL) free(servicos);
 }
 
 Servico *carregar_servicos(int *count, int *capacidade) {
@@ -682,8 +684,21 @@ void submenu_cliente_servico() {
     ClienteServico *cliente_servicos = NULL;
     int count = 0;
     int capacidade = 0;
+
+    // Carrega clientes pelo ponteiro
+    Cliente *clientes = NULL;
+    int count_clientes = 0;
+    int cap_clientes = 0;
+    
+    int count_servicos = 0;
+    int cap_servicos = 0;
+    
+    
     printf("\nCarregando dados dos agendamentos...\n");
+    // Carrega serviços pela função que retorna a o ponteiro inicial do vetor
+    Servico *servicos = carregar_servicos(&count_servicos, &cap_servicos);
     carregar_cliente_servicos(&cliente_servicos, &count, &capacidade);
+    carregar_clientes(&clientes, &count_clientes, &cap_clientes);
     
     do {
         printf("\n=== SUBMENU CLIENTE/SERVICO ===\n");
@@ -699,13 +714,13 @@ void submenu_cliente_servico() {
         
         switch(opcao) {
             case 1:
-                //listar_todos_cliente_servico();
+                listar_todos_cliente_servico();
                 break;
             case 2:
                 //listar_cliente_servico_especifico();
                 break;
             case 3:
-                //incluir_cliente_servico();
+                incluir_cliente_servico(&cliente_servicos, count, capacidade, clientes, count_clientes, servicos, count_servicos);
                 break;
             case 4:
                 //alterar_cliente_servico();
@@ -721,6 +736,9 @@ void submenu_cliente_servico() {
                 printf("Opcao invalida!\n");
         }
     } while (opcao != 6);
+    if (cliente_servicos != NULL) free(cliente_servicos);
+    if (clientes != NULL) free(clientes);
+    if (servicos != NULL) free(servicos);
 }
 void carregar_cliente_servicos(ClienteServico **cs, int *count, int *capacidade) {
     FILE *arquivo = fopen(ARQUIVO_CLIENTE_SERVICO, "rb");
@@ -776,7 +794,72 @@ void salvar_cliente_servicos(ClienteServico *cs, int count) {
     
     fclose(arquivo);
 }
+void listar_todos_cliente_servico(ClienteServico *cs, int count){
 
+}
+void listar_cliente_servico_especifico(ClienteServico *cs, int count){
+
+}
+int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cliente *clientes, 
+    int clientes_count, Servico *servicos, int servicos_count){
+
+    if (*count >= *capacidade) {
+        *capacidade *= 2;
+        *cs = (ClienteServico*)realloc(*cs, *capacidade * sizeof(ClienteServico));
+        if (*cs == NULL) {
+            printf("Erro ao alocar memoria!\n");
+            return 0;
+        }
+        printf("Capacidade aumentada para %d agendamentos.\n", *capacidade);
+    }
+    ClienteServico novo;
+    
+    printf("\n=== INCLUIR AGENDAMENTO ===\n");
+    printf("CPF do Cliente: ");
+    scanf("%s", novo.cpf_cliente);
+    limpar_buffer();
+    
+    if (buscar_cliente_por_cpf(clientes, count_cli, novo.cpf_cliente) == -1) {
+        printf("Erro: Cliente nao existe!\n");
+        return 0;
+    }
+    
+    printf("Codigo do Servico: ");
+    scanf("%d", &novo.codigo_servico);
+    limpar_buffer();
+    
+    if (buscar_servico_por_codigo(servicos, count_serv, novo.codigo_servico) == -1) {
+        printf("Erro: Servico nao existe!\n");
+        return 0;
+    }
+    
+    printf("Data do agendamento:\n");
+    novo.data = ler_data();
+    
+    if (buscar_cliente_servico(*cs, *count, novo.cpf_cliente, novo.codigo_servico, novo.data) != -1) {
+        printf("Erro: Agendamento ja existe para esta data!\n");
+        return 0;
+    }
+    
+    (*cs)[*count] = novo;
+    (*count)++;
+    
+    return 1;
+
+}
+
+int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo, Data data){
+    int i;
+    for(i=0; i<count; i++){
+        if(strcmp(cs[i].cpf_cliente, cpf) == 0 
+        && cs[i].codigo_servico == codigo 
+        && comparar_datas(cs[i].data, data)){
+            return i;
+        }
+    }
+    return -1;
+
+}
 
 
 
@@ -855,4 +938,12 @@ int confirmar_operacao(char operacao[]) {
 
     return 0;
     
+}
+
+int comparar_datas(Data d1, Data d2) {
+    // Se os anos forem diferentes, eu retorno em anos
+    if (d1.ano != d2.ano) return d1.ano - d2.ano;
+    // Se os meses forem diferentes, eu retorno em meses
+    if (d1.mes != d2.mes) return d1.mes - d2.mes;
+    return d1.dia - d2.dia;
 }
