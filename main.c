@@ -78,7 +78,7 @@ int excluir_servico(Servico *servicos, int *count);
 int buscar_servico_por_codigo(Servico *servicos, int count, int codigo);
 
 // Funções para cliente_servico
-void listar_todos_cliente_servico(ClienteServico *cs, int count);
+void listar_todos_cliente_servico(ClienteServico *cs, int count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 void listar_cliente_servico_especifico(ClienteServico *cs, int count);
 int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 // int alterar_cliente_servico(ClienteServico *cs, int count);
@@ -714,13 +714,13 @@ void submenu_cliente_servico() {
         
         switch(opcao) {
             case 1:
-                listar_todos_cliente_servico();
+                listar_todos_cliente_servico(cliente_servicos, count, clientes, count_clientes, servicos, count_servicos);
                 break;
             case 2:
                 //listar_cliente_servico_especifico();
                 break;
             case 3:
-                incluir_cliente_servico(&cliente_servicos, count, capacidade, clientes, count_clientes, servicos, count_servicos);
+                incluir_cliente_servico(&cliente_servicos, &count, &capacidade, clientes, count_clientes, servicos, count_servicos);
                 break;
             case 4:
                 //alterar_cliente_servico();
@@ -794,8 +794,36 @@ void salvar_cliente_servicos(ClienteServico *cs, int count) {
     
     fclose(arquivo);
 }
-void listar_todos_cliente_servico(ClienteServico *cs, int count){
+void listar_todos_cliente_servico(ClienteServico *cs, int count, Cliente *clientes, 
+    int clientes_count, Servico *servicos, int servicos_count){
 
+    printf("\n=== LISTA DE AGENDAMENTOS ===\n");
+    
+    if (count == 0) {
+        printf("Nenhum agendamento cadastrado.\n");
+        return;
+    }
+    
+    for (int i = 0; i < count; i++) {
+        printf("CPF Cliente: %s\n", cs[i].cpf_cliente);
+        
+        int idx_cli = buscar_cliente_por_cpf(clientes, clientes_count, cs[i].cpf_cliente);
+        if (idx_cli != -1) {
+            printf("Nome Cliente: %s\n", clientes[idx_cli].nome);
+        }
+        
+        printf("Codigo Servico: %d\n", cs[i].codigo_servico);
+        
+        int idx_serv = buscar_servico_por_codigo(servicos, servicos_count, cs[i].codigo_servico);
+        if (idx_serv != -1) {
+            printf("Descricao Servico: %s\n", servicos[idx_serv].descricao);
+            printf("Preco: R$ %.2f\n", servicos[idx_serv].preco);
+        }
+        
+        printf("Data: ");
+        imprimir_data(cs[i].data);
+        printf("\n-------------------------\n");
+    }
 }
 void listar_cliente_servico_especifico(ClienteServico *cs, int count){
 
@@ -819,7 +847,7 @@ int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cl
     scanf("%s", novo.cpf_cliente);
     limpar_buffer();
     
-    if (buscar_cliente_por_cpf(clientes, count_cli, novo.cpf_cliente) == -1) {
+    if (buscar_cliente_por_cpf(clientes, clientes_count, novo.cpf_cliente) == -1) {
         printf("Erro: Cliente nao existe!\n");
         return 0;
     }
@@ -828,7 +856,7 @@ int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cl
     scanf("%d", &novo.codigo_servico);
     limpar_buffer();
     
-    if (buscar_servico_por_codigo(servicos, count_serv, novo.codigo_servico) == -1) {
+    if (buscar_servico_por_codigo(servicos, servicos_count, novo.codigo_servico) == -1) {
         printf("Erro: Servico nao existe!\n");
         return 0;
     }
