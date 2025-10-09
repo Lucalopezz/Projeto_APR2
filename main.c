@@ -79,7 +79,7 @@ int buscar_servico_por_codigo(Servico *servicos, int count, int codigo);
 
 // Funções para cliente_servico
 void listar_todos_cliente_servico(ClienteServico *cs, int count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
-void listar_cliente_servico_especifico(ClienteServico *cs, int count);
+void listar_cliente_servico_especifico(ClienteServico *cs, int count, int *capacidade, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 // int alterar_cliente_servico(ClienteServico *cs, int count);
 // int excluir_cliente_servico(ClienteServico **cs, int *count);
@@ -717,7 +717,7 @@ void submenu_cliente_servico() {
                 listar_todos_cliente_servico(cliente_servicos, count, clientes, count_clientes, servicos, count_servicos);
                 break;
             case 2:
-                //listar_cliente_servico_especifico();
+                listar_cliente_servico_especifico(cliente_servicos, count, &capacidade, clientes, count_clientes, servicos, count_servicos);
                 break;
             case 3:
                 incluir_cliente_servico(&cliente_servicos, &count, &capacidade, clientes, count_clientes, servicos, count_servicos);
@@ -756,7 +756,7 @@ void carregar_cliente_servicos(ClienteServico **cs, int *count, int *capacidade)
     
     fseek(arquivo, 0, SEEK_END);
     long tamanho = ftell(arquivo);
-    *count = tamanho / sizeof(Cliente);
+    *count = tamanho / sizeof(ClienteServico);
     fseek(arquivo, 0, SEEK_SET);
     
     *capacidade = (*count > CAPACIDADE_INICIAL) ? *count : CAPACIDADE_INICIAL; 
@@ -783,13 +783,13 @@ void salvar_cliente_servicos(ClienteServico *cs, int count) {
     FILE *arquivo = fopen(ARQUIVO_CLIENTE_SERVICO, "wb");
     
     if (arquivo == NULL) {
-        printf("Erro ao salvar clientes!\n");
+        printf("Erro ao salvar agendamentos!\n");
         return;
     }
     
     if (count > 0) {
         fwrite(cs, sizeof(ClienteServico), count, arquivo);
-        printf("Salvos %d clientes no arquivo.\n", count);
+        printf("Salvos %d agendamentos no arquivo.\n", count);
     }
     
     fclose(arquivo);
@@ -825,7 +825,48 @@ void listar_todos_cliente_servico(ClienteServico *cs, int count, Cliente *client
         printf("\n-------------------------\n");
     }
 }
-void listar_cliente_servico_especifico(ClienteServico *cs, int count){
+void listar_cliente_servico_especifico(ClienteServico *cs, int count, int *capacidade, Cliente *clientes, 
+    int clientes_count, Servico *servicos, int servicos_count){
+    char cpf[MAX_CPF];
+    int codigo;
+    Data data;
+    
+    printf("Digite o CPF do cliente: ");
+    scanf("%s", cpf);
+    limpar_buffer();
+    
+    printf("Digite o codigo do servico: ");
+    scanf("%d", &codigo);
+    limpar_buffer();
+    
+    printf("Digite a data:\n");
+    data = ler_data();
+
+    int indice = buscar_cliente_servico(cs, count, cpf, codigo, data);
+    if (indice == -1) {
+        printf("Agendamento nao encontrado!\n");
+        return;
+    }
+    printf("\n=== DADOS DO AGENDAMENTO ===\n");
+    printf("CPF Cliente: %s\n", cs[indice].cpf_cliente);
+    
+    int idx_cli = buscar_cliente_por_cpf(clientes, clientes_count, cpf);
+    if (idx_cli != -1) {
+        printf("Nome Cliente: %s\n", clientes[idx_cli].nome);
+    }
+    
+    printf("Codigo Servico: %d\n", cs[indice].codigo_servico);
+    
+    int idx_serv = buscar_servico_por_codigo(servicos, servicos_count , codigo);
+    if (idx_serv != -1) {
+        printf("Descricao Servico: %s\n", servicos[idx_serv].descricao);
+        printf("Preco: R$ %.2f\n", servicos[idx_serv].preco);
+    }
+    
+    printf("Data: ");
+    imprimir_data(cs[indice].data);
+    printf("\n");
+
 
 }
 int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cliente *clientes, 
@@ -973,5 +1014,7 @@ int comparar_datas(Data d1, Data d2) {
     if (d1.ano != d2.ano) return d1.ano - d2.ano;
     // Se os meses forem diferentes, eu retorno em meses
     if (d1.mes != d2.mes) return d1.mes - d2.mes;
-    return d1.dia - d2.dia;
+    if(d1.dia != d2.dia) return d1.dia - d2.dia;
+    // Se chegar aqui, são iguais, logo é no mesmo dia 
+    return -1;
 }
