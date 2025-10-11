@@ -720,13 +720,25 @@ void submenu_cliente_servico() {
                 listar_cliente_servico_especifico(cliente_servicos, count, &capacidade, clientes, count_clientes, servicos, count_servicos);
                 break;
             case 3:
-                incluir_cliente_servico(&cliente_servicos, &count, &capacidade, clientes, count_clientes, servicos, count_servicos);
+                if (incluir_cliente_servico(&cliente_servicos, &count, &capacidade, clientes, count_clientes, servicos, count_servicos)){
+                    printf("Agendamento incluido com sucesso! Total: %d agendamentos.\n", count);
+                } else {
+                    printf("Erro ao incluir agendamento. Verifique se os dados estao corretos.\n");
+                }
                 break;
             case 4:
-                alterar_cliente_servico(cliente_servicos, count);
+                if (alterar_cliente_servico(cliente_servicos, count)) {
+                    printf("Agendamento alterado com sucesso!\n");
+                } else {
+                    printf("Erro ao alterar agendamento. Verifique se os dados estao corretos.\n");
+                }
                 break;
             case 5:
-                //excluir_cliente_servico();
+                if (excluir_cliente_servico(&cliente_servicos, &count)) {
+                    printf("Agendamento excluido com sucesso!\n");
+                } else {
+                    printf("Erro ao excluir agendamento. Verifique se os dados estao corretos.\n");
+                }
                 break;
             case 6:
                 printf("Salvando dados dos agendamentos...\n");
@@ -876,7 +888,6 @@ int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cl
         *capacidade *= 2;
         *cs = (ClienteServico*)realloc(*cs, *capacidade * sizeof(ClienteServico));
         if (*cs == NULL) {
-            printf("Erro ao alocar memoria!\n");
             return 0;
         }
         printf("Capacidade aumentada para %d agendamentos.\n", *capacidade);
@@ -889,7 +900,6 @@ int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cl
     limpar_buffer();
     
     if (buscar_cliente_por_cpf(clientes, clientes_count, novo.cpf_cliente) == -1) {
-        printf("Erro: Cliente nao existe!\n");
         return 0;
     }
     
@@ -898,7 +908,6 @@ int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cl
     limpar_buffer();
     
     if (buscar_servico_por_codigo(servicos, servicos_count, novo.codigo_servico) == -1) {
-        printf("Erro: Servico nao existe!\n");
         return 0;
     }
     
@@ -906,7 +915,6 @@ int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cl
     novo.data = ler_data();
     
     if (buscar_cliente_servico(*cs, *count, novo.cpf_cliente, novo.codigo_servico, novo.data) != -1) {
-        printf("Erro: Agendamento ja existe para esta data!\n");
         return 0;
     }
     
@@ -965,6 +973,38 @@ int alterar_cliente_servico(ClienteServico *cs, int count){
     return 1;
 }
 int excluir_cliente_servico(ClienteServico **cs, int *count){
+    char cpf[MAX_CPF];
+    int codigo;
+    Data data;
+
+    printf("Digite o CPF do cliente do agendamento a alterar: ");
+    scanf("%s", cpf);
+    limpar_buffer();
+
+    printf("Digite o codigo do servico do agendamento a alterar: ");
+    scanf("%d", &codigo);
+    limpar_buffer();
+
+    printf("Digite a data do agendamento a alterar:\n");
+    data = ler_data();
+
+    int indice = buscar_cliente_servico(*cs, *count, cpf, codigo, data);
+    if (indice == -1) {
+        return 0;
+    }
+    int confirmar = confirmar_operacao("excluir este agendamento");
+
+    if (confirmar == 0) {
+        return 0;
+    }
+
+    int i;
+    for (i = indice; i < *count - 1; i++) {
+        (*cs)[i] = (*cs)[i + 1];
+    }
+
+    (*count)--;
+    return 1;
 
 }
 
