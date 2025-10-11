@@ -81,8 +81,8 @@ int buscar_servico_por_codigo(Servico *servicos, int count, int codigo);
 void listar_todos_cliente_servico(ClienteServico *cs, int count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 void listar_cliente_servico_especifico(ClienteServico *cs, int count, int *capacidade, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 int incluir_cliente_servico(ClienteServico **cs, int *count, int *capacidade, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
-// int alterar_cliente_servico(ClienteServico *cs, int count);
-// int excluir_cliente_servico(ClienteServico **cs, int *count);
+int alterar_cliente_servico(ClienteServico *cs, int count);
+int excluir_cliente_servico(ClienteServico **cs, int *count);
 int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo, Data data);
 
 // Funções de relatórios
@@ -723,7 +723,7 @@ void submenu_cliente_servico() {
                 incluir_cliente_servico(&cliente_servicos, &count, &capacidade, clientes, count_clientes, servicos, count_servicos);
                 break;
             case 4:
-                //alterar_cliente_servico();
+                alterar_cliente_servico(cliente_servicos, count);
                 break;
             case 5:
                 //excluir_cliente_servico();
@@ -927,6 +927,44 @@ int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo
         }
     }
     return -1;
+
+}
+
+int alterar_cliente_servico(ClienteServico *cs, int count){
+    char cpf[MAX_CPF];
+    int codigo;
+    Data data;
+
+    printf("Digite o CPF do cliente do agendamento a alterar: ");
+    scanf("%s", cpf);
+    limpar_buffer();
+
+    printf("Digite o codigo do servico do agendamento a alterar: ");
+    scanf("%d", &codigo);
+    limpar_buffer();
+
+    printf("Digite a data do agendamento a alterar:\n");
+    data = ler_data();
+
+    int indice = buscar_cliente_servico(cs, count, cpf, codigo, data);
+    if (indice == -1) {
+        return 0;
+    }
+    printf("\n=== DADOS ATUAIS ===\n");
+    printf("CPF Cliente: %s\n", cs[indice].cpf_cliente);
+    printf("Codigo Servico: %d\n", cs[indice].codigo_servico);
+    printf("Data: ");
+    imprimir_data(cs[indice].data);
+    printf("\n");
+
+    printf("\n=== NOVOS DADOS ===\n");
+    
+    printf("Nova data: \n");
+    cs[indice].data = ler_data();
+
+    return 1;
+}
+int excluir_cliente_servico(ClienteServico **cs, int *count){
 
 }
 
