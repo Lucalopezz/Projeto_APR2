@@ -1,0 +1,12 @@
+=== SERVICOS REALIZADOS EM 13/12/2025 ===
+
+Nome Cliente: Eloize
+Codigo Servico: 2
+Descricao Servico: Cabelo Completo
+Preco: R$ 110.00
+-------------------------
+Nome Cliente: Lucas
+Codigo Servico: 1
+Descricao Servico: Cabelo Simples
+Preco: R$ 50.00
+-------------------------

@@ -87,7 +87,7 @@ int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo
 
 // Funções de relatórios
 int relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
-// void relatorio_servicos_data_especifica(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
+int relatorio_servicos_data_especifica(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 // void relatorio_servicos_periodo(ClienteServico *cs, int cs_count, Servico *servicos, int servicos_count);
 
 
@@ -926,7 +926,7 @@ int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo
     for(i=0; i<count; i++){
         if(strcmp(cs[i].cpf_cliente, cpf) == 0 
         && cs[i].codigo_servico == codigo 
-        && comparar_datas(cs[i].data, data)){
+        && comparar_datas(cs[i].data, data) == 0){
             return i;
         }
     }
@@ -1046,7 +1046,12 @@ void submenu_relatorios() {
                 }
                 break;
             case 2:
-                //relatorio_servicos_data_especifica();
+                if(relatorio_servicos_data_especifica(cliente_servicos, count, clientes, count_clientes, servicos, count_servicos)){
+                    printf("Relatorio salvo em 'relatorio_servicos_data.txt'\n");
+                }
+                else {
+                    printf("Erro ao gerar relatorio.\n");
+                }
                 break;
             case 3:
                 //relatorio_servicos_periodo();
@@ -1108,6 +1113,42 @@ int relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Clie
     
 }
 
+int relatorio_servicos_data_especifica(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count){
+    Data data_especifica;
+    printf("Digite a data:\n");
+    data_especifica = ler_data();
+
+    FILE *relatorio = fopen("relatorio_servicos_data.txt", "w");
+    if (relatorio == NULL) {
+        printf("Erro ao criar arquivo de relatorio!\n");
+        return 0;
+    }
+    
+    fprintf(relatorio, "=== SERVICOS REALIZADOS EM %02d/%02d/%04d ===\n\n", data_especifica.dia, data_especifica.mes, data_especifica.ano);
+    int encontrou = 0, i;
+    for(i=0; i<cs_count; i++){
+        if(comparar_datas(cs[i].data, data_especifica) == 0){
+            int idx_cli = buscar_cliente_por_cpf(clientes, clientes_count, cs[i].cpf_cliente);
+            int idx_serv = buscar_servico_por_codigo(servicos, servicos_count, cs[i].codigo_servico);
+            if (idx_cli != -1 && idx_serv != -1) {
+                fprintf(relatorio, "Nome Cliente: %s\n", clientes[idx_cli].nome);
+                fprintf(relatorio, "Codigo Servico: %d\n", servicos[idx_serv].codigo);
+                fprintf(relatorio, "Descricao Servico: %s\n", servicos[idx_serv].descricao);
+                fprintf(relatorio, "Preco: R$ %.2f\n", servicos[idx_serv].preco);
+                fprintf(relatorio, "-------------------------\n");
+                encontrou = 1;
+            }
+
+        }
+    }
+    if (!encontrou) {
+        fprintf(relatorio, "Nenhum servico encontrado para esta data.\n");
+    }
+    
+    fclose(relatorio);
+    return 1;
+}
+
 
 
 
@@ -1155,7 +1196,6 @@ int comparar_datas(Data d1, Data d2) {
     if (d1.ano != d2.ano) return d1.ano - d2.ano;
     // Se os meses forem diferentes, eu retorno em meses
     if (d1.mes != d2.mes) return d1.mes - d2.mes;
-    if(d1.dia != d2.dia) return d1.dia - d2.dia;
-    // Se chegar aqui, são iguais, logo é no mesmo dia 
-    return -1;
+    return d1.dia - d2.dia;
+  
 }
