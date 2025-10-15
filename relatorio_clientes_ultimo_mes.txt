@@ -1,0 +1,12 @@
+=== CLIENTES QUE CONTRATARAM SERVICO 1 NO ULTIMO MES ===
+
+Nome: Lucas
+Telefone Fixo: 12
+Telefone Celular: 33333
+Data do Servico: 12/10/2025
+-------------------------
+Nome: Eloize
+Telefone Fixo: 16
+Telefone Celular: 322323
+Data do Servico: 15/10/2025
+-------------------------

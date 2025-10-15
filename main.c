@@ -86,18 +86,16 @@ int excluir_cliente_servico(ClienteServico **cs, int *count);
 int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo, Data data);
 
 // Funções de relatórios
-// void relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count);
+int relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 // void relatorio_servicos_data_especifica(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 // void relatorio_servicos_periodo(ClienteServico *cs, int cs_count, Servico *servicos, int servicos_count);
 
 
 
 // Funções auxiliares
-// não sei se vou precisar
 Data ler_data();
 void imprimir_data(Data data);
 int comparar_datas(Data d1, Data d2);
-int data_no_ultimo_mes(Data data);
 void limpar_buffer();
 int confirmar_operacao(char operacao[]);
 
@@ -675,9 +673,7 @@ int excluir_servico(Servico *servicos, int *count){
     return 1;
 }
 
-
-
-
+// ================= Agendamentos ====================
 
 void submenu_cliente_servico() {
     int opcao;
@@ -1009,24 +1005,26 @@ int excluir_cliente_servico(ClienteServico **cs, int *count){
 }
 
 
-
-
-
-
-
+// ================= Relatorios ====================
 void submenu_relatorios() {
     int opcao;
-    Cliente *clientes = NULL;
-    int capacidade = 0;
-    Servico *servicos = NULL;
-    int capacidade_servicos = 0;
     ClienteServico *cliente_servicos = NULL;
-    int capacidade_cliente_servicos = 0;
-    // Para relatórios, carregamos todos os dados necessários
-    printf("\nCarregando dados para relatorios...\n");
-    // carregar_clientes(&clientes, &capacidade);
-    // carregar_servicos(&servicos, &capacidade_servicos);
-    // carregar_cliente_servicos(&cliente_servicos, &capacidade_cliente_servicos);
+    int count = 0;
+    int capacidade = 0;
+
+    Cliente *clientes = NULL;
+    int count_clientes = 0;
+    int cap_clientes = 0;
+    
+    int count_servicos = 0;
+    int cap_servicos = 0;
+    
+    
+    printf("\nCarregando dados dos agendamentos...\n");
+    // Carrega serviços pela função que retorna a o ponteiro inicial do vetor
+    Servico *servicos = carregar_servicos(&count_servicos, &cap_servicos);
+    carregar_cliente_servicos(&cliente_servicos, &count, &capacidade);
+    carregar_clientes(&clientes, &count_clientes, &cap_clientes);
     
     do {
         printf("\n=== SUBMENU RELATORIOS ===\n");
@@ -1040,7 +1038,12 @@ void submenu_relatorios() {
         
         switch(opcao) {
             case 1:
-                //relatorio_clientes_servico_ultimo_mes();
+                if(relatorio_clientes_servico_ultimo_mes(cliente_servicos, count, clientes, count_clientes, servicos, count_servicos)){
+                    printf("Relatorio salvo em 'relatorio_clientes_ultimo_mes.txt'\n");
+                }
+                else {
+                    printf("Erro ao gerar relatorio.\n");
+                }
                 break;
             case 2:
                 //relatorio_servicos_data_especifica();
@@ -1055,7 +1058,67 @@ void submenu_relatorios() {
         }
     } while (opcao != 4);
 }
+int relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count){
+    int codigo_servico, mes_consulta, ano_consulta;;
+    printf("Digite o codigo do servico: ");
+    scanf("%d", &codigo_servico);
+    limpar_buffer();
+    
+    if (buscar_servico_por_codigo(servicos, servicos_count, codigo_servico) == -1) {
+        printf("Servico nao encontrado!\n");
+        return 0;
+    }
 
+    printf("Digite o mes que deseja consultar (1-12): ");
+    scanf("%d", &mes_consulta);
+    printf("Digite o ano: ");
+    scanf("%d", &ano_consulta);
+
+    FILE *relatorio = fopen("relatorio_clientes_ultimo_mes.txt", "w");
+    if (relatorio == NULL) {
+        printf("Erro ao criar arquivo de relatorio!\n");
+        return 0;
+    }
+    fprintf(relatorio, "=== CLIENTES QUE CONTRATARAM SERVICO %d NO ULTIMO MES ===\n\n", codigo_servico);
+
+    int encontrou = 0, i;
+    for(i=0; i<cs_count; i++){
+        if (cs[i].codigo_servico == codigo_servico &&
+            cs[i].data.mes == mes_consulta &&
+            cs[i].data.ano == ano_consulta) {
+                
+            int idx_cli = buscar_cliente_por_cpf(clientes, clientes_count, cs[i].cpf_cliente);
+            if (idx_cli != -1) {
+                fprintf(relatorio, "Nome: %s\n", clientes[idx_cli].nome);
+                fprintf(relatorio, "Telefone Fixo: %s\n", clientes[idx_cli].telefone_fixo);
+                fprintf(relatorio, "Telefone Celular: %s\n", clientes[idx_cli].telefone_celular);
+                fprintf(relatorio, "Data do Servico: %02d/%02d/%04d\n", 
+                       cs[i].data.dia, cs[i].data.mes, cs[i].data.ano);
+                fprintf(relatorio, "-------------------------\n");
+                encontrou = 1;
+            }
+        }   
+    }
+    if (!encontrou) {
+        fprintf(relatorio, "Nenhum cliente encontrado.\n");
+    }
+    
+    fclose(relatorio);
+    return 1;
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+// ================= Funcoes Auxiliares ====================
 Data ler_data() {
     Data data;
     printf("Dia: ");
