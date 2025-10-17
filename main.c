@@ -88,7 +88,7 @@ int buscar_cliente_servico(ClienteServico *cs, int count, char cpf[], int codigo
 // Funções de relatórios
 int relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
 int relatorio_servicos_data_especifica(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count);
-// void relatorio_servicos_periodo(ClienteServico *cs, int cs_count, Servico *servicos, int servicos_count);
+int relatorio_servicos_periodo(ClienteServico *cs, int cs_count, Servico *servicos, int servicos_count);
 
 
 
@@ -1054,7 +1054,12 @@ void submenu_relatorios() {
                 }
                 break;
             case 3:
-                //relatorio_servicos_periodo();
+                if(relatorio_servicos_periodo(cliente_servicos, count, servicos, count_servicos)){
+                    printf("Relatorio salvo em 'relatorio_servicos_periodo.txt'\n");
+                }
+                else {
+                    printf("Erro ao gerar relatorio.\n");
+                }
                 break;
             case 4:
                 break;
@@ -1097,7 +1102,7 @@ int relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Clie
                 fprintf(relatorio, "Nome: %s\n", clientes[idx_cli].nome);
                 fprintf(relatorio, "Telefone Fixo: %s\n", clientes[idx_cli].telefone_fixo);
                 fprintf(relatorio, "Telefone Celular: %s\n", clientes[idx_cli].telefone_celular);
-                fprintf(relatorio, "Data do Servico: %02d/%02d/%04d\n", 
+                fprintf(relatorio, "Data do Servico: %d/%d/%d\n", 
                        cs[i].data.dia, cs[i].data.mes, cs[i].data.ano);
                 fprintf(relatorio, "-------------------------\n");
                 encontrou = 1;
@@ -1124,7 +1129,7 @@ int relatorio_servicos_data_especifica(ClienteServico *cs, int cs_count, Cliente
         return 0;
     }
     
-    fprintf(relatorio, "=== SERVICOS REALIZADOS EM %02d/%02d/%04d ===\n\n", data_especifica.dia, data_especifica.mes, data_especifica.ano);
+    fprintf(relatorio, "=== SERVICOS REALIZADOS EM %d/%d/%d ===\n\n", data_especifica.dia, data_especifica.mes, data_especifica.ano);
     int encontrou = 0, i;
     for(i=0; i<cs_count; i++){
         if(comparar_datas(cs[i].data, data_especifica) == 0){
@@ -1147,6 +1152,48 @@ int relatorio_servicos_data_especifica(ClienteServico *cs, int cs_count, Cliente
     
     fclose(relatorio);
     return 1;
+}
+
+int relatorio_servicos_periodo(ClienteServico *cs, int cs_count, Servico *servicos, int servicos_count){
+    Data data_inicio;
+    Data data_final;
+    printf("Digite a data inicial:\n");
+    data_inicio = ler_data();
+    printf("Digite a data final:\n");
+    data_final = ler_data();
+
+    FILE *relatorio = fopen("relatorio_servicos_periodo.txt", "w");
+    if (relatorio == NULL) {
+        printf("Erro ao criar arquivo de relatorio!\n");
+        return 0;
+    }
+    fprintf(relatorio, "=== SERVICOS REALIZADOS ENTRE %d/%d/%d E %d/%d/%d ===\n\n", 
+        data_inicio.dia, data_inicio.mes, data_inicio.ano,
+        data_final.dia, data_final.mes, data_final.ano);
+
+    int encontrou = 0, i;
+    for(i=0; i<cs_count; i++){
+        if (comparar_datas(cs[i].data, data_inicio) >= 0 && comparar_datas(cs[i].data, data_final) <= 0) {
+            int idx_serv = buscar_servico_por_codigo(servicos, servicos_count, cs[i].codigo_servico);
+            if (idx_serv != -1) {
+                fprintf(relatorio, "Codigo Servico: %d\n", servicos[idx_serv].codigo);
+                fprintf(relatorio, "Descricao Servico: %s\n", servicos[idx_serv].descricao);
+                fprintf(relatorio, "Preco: R$ %.2f\n", servicos[idx_serv].preco);
+                fprintf(relatorio, "Data do Servico: %d/%d/%d\n", 
+                       cs[i].data.dia, cs[i].data.mes, cs[i].data.ano);
+                fprintf(relatorio, "-------------------------\n");
+                encontrou = 1;
+            }
+        }
+    }
+
+    if (!encontrou) {
+        fprintf(relatorio, "Nenhum servico encontrado neste periodo.\n");
+    }
+    
+    fclose(relatorio);
+    return 1;
+
 }
 
 
