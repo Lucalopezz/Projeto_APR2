@@ -275,7 +275,6 @@ int incluir_cliente(Cliente **clientes, int *count, int *capacidade) {
         *capacidade += CAPACIDADE_INICIAL;
         *clientes = (Cliente*)realloc(*clientes, *capacidade * sizeof(Cliente));
         if (*clientes == NULL) {
-            printf("Erro ao alocar memoria!\n");
             return 0;
         }
         printf("Capacidade aumentada para %d clientes.\n", *capacidade);
@@ -410,7 +409,6 @@ int excluir_cliente(Cliente *clientes, int *count) {
     
     int indice = buscar_cliente_por_cpf(clientes, *count, cpf);
     if (indice == -1) {
-        printf("Cliente nao encontrado!\n");
         return 0;
     }
     printf("\n=== DADOS DO CLIENTE ===\n");
