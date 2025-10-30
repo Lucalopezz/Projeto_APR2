@@ -98,6 +98,7 @@ void imprimir_data(Data data);
 int comparar_datas(Data d1, Data d2);
 void limpar_buffer();
 int confirmar_operacao(char operacao[]);
+int data_no_ultimo_mes(Data data);
 
 int main() {
     printf("=== SISTEMA DE SALAO DE BELEZA ===\n\n");
@@ -1067,7 +1068,7 @@ void submenu_relatorios() {
     } while (opcao != 4);
 }
 int relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Cliente *clientes, int clientes_count, Servico *servicos, int servicos_count){
-    int codigo_servico, mes_consulta, ano_consulta;;
+    int codigo_servico;
     printf("Digite o codigo do servico: ");
     scanf("%d", &codigo_servico);
     limpar_buffer();
@@ -1076,11 +1077,6 @@ int relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Clie
         printf("Servico nao encontrado!\n");
         return 0;
     }
-
-    printf("Digite o mes que deseja consultar (1-12): ");
-    scanf("%d", &mes_consulta);
-    printf("Digite o ano: ");
-    scanf("%d", &ano_consulta);
 
     FILE *relatorio = fopen("relatorio_clientes_ultimo_mes.txt", "w");
     if (relatorio == NULL) {
@@ -1091,9 +1087,7 @@ int relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Clie
 
     int encontrou = 0, i;
     for(i=0; i<cs_count; i++){
-        if (cs[i].codigo_servico == codigo_servico &&
-            cs[i].data.mes == mes_consulta &&
-            cs[i].data.ano == ano_consulta) {
+        if (cs[i].codigo_servico == codigo_servico && data_no_ultimo_mes(cs[i].data)) {
                 
             int idx_cli = buscar_cliente_por_cpf(clientes, clientes_count, cs[i].cpf_cliente);
             if (idx_cli != -1) {
@@ -1196,14 +1190,6 @@ int relatorio_servicos_periodo(ClienteServico *cs, int cs_count, Servico *servic
 
 
 
-
-
-
-
-
-
-
-
 // ================= Funcoes Auxiliares ====================
 Data ler_data() {
     Data data;
@@ -1243,4 +1229,31 @@ int comparar_datas(Data d1, Data d2) {
     if (d1.mes != d2.mes) return d1.mes - d2.mes;
     return d1.dia - d2.dia;
   
+}
+
+int data_no_ultimo_mes(Data data){
+
+    // Pega a data atual do sistema
+    time_t t = time(NULL);
+    struct tm *tm_atual = localtime(&t);
+
+    // Cria a data atual e a data limite (um mês atrás)
+    Data data_atual = {
+        tm_atual->tm_mday,
+        tm_atual->tm_mon +1,
+        tm_atual->tm_year + 1900
+    };
+    Data data_limite = data_atual;
+    data_limite.mes--;
+
+    // Ajusta o ano se o mês for menor ou igual a zero
+    if (data_limite.mes <= 0) {
+        data_limite.mes = 12;
+        data_limite.ano--;
+    }
+
+    // Verifica se a data está entre a data limite e a data atual
+    // Retorna 1 se as 2 operações forem verdadeiras, se n 0
+    return comparar_datas(data, data_limite) >= 0 && comparar_datas(data, data_atual) <= 0;
+
 }
