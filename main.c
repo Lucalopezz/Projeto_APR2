@@ -334,6 +334,7 @@ void listar_todos_clientes(Cliente *clientes, int count) {
         return;
     }
     int i;
+    printf("\n=== LISTA DE CLIENTES ===\n");
     for (i = 0; i < count; i++) {
         printf("CPF: %s\n", clientes[i].cpf);
         printf("Nome: %s\n", clientes[i].nome);
@@ -357,7 +358,7 @@ void listar_cliente_especifico(Cliente *clientes, int count) {
         printf("Cliente nao encontrado!\n");
         return;
     }
-    
+    printf("\n=== CLIENTE: ===\n");
     printf("CPF: %s\n", clientes[indice].cpf);
     printf("Nome: %s\n", clientes[indice].nome);
     printf("Endereco: %s\n", clientes[indice].endereco);

@@ -1,4 +1,4 @@
-=== SERVICOS REALIZADOS ENTRE 1/10/2025 E 31/12/2025 ===
+=== SERVICOS REALIZADOS ENTRE 1/1/2000 E 31/12/2027 ===
 
 Codigo Servico: 1
 Descricao Servico: Cabelo Simples
@@ -19,11 +19,6 @@ Codigo Servico: 2
 Descricao Servico: Cabelo Completo
 Preco: R$ 110.00
 Data do Servico: 13/12/2025
--------------------------
-Codigo Servico: 1
-Descricao Servico: Cabelo Simples
-Preco: R$ 50.00
-Data do Servico: 12/12/2025
 -------------------------
 Codigo Servico: 1
 Descricao Servico: Cabelo Simples
