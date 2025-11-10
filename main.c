@@ -964,7 +964,14 @@ int alterar_cliente_servico(ClienteServico *cs, int count){
     printf("\n=== NOVOS DADOS ===\n");
     
     printf("Nova data: \n");
-    cs[indice].data = ler_data();
+    Data nova_data = ler_data();
+
+    // Verifica se já existe outro agendamento com os mesmos dados
+    int i_novo = buscar_cliente_servico(cs, count, cpf, codigo, nova_data);
+    if (i_novo != -1 && i_novo != indice) {
+        return 0;
+    }
+    cs[indice].data = nova_data;
 
     return 1;
 }
