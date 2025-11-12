@@ -7,7 +7,6 @@
 #define MAX_TELEFONE 20
 #define MAX_CPF 16
 #define MAX_ENDERECO 200
-#define MAX_REGISTROS 1000
 
 #define CAPACIDADE_INICIAL 20
 
@@ -1081,14 +1080,10 @@ int relatorio_clientes_servico_ultimo_mes(ClienteServico *cs, int cs_count, Clie
     scanf("%d", &codigo_servico);
     limpar_buffer();
     
-    if (buscar_servico_por_codigo(servicos, servicos_count, codigo_servico) == -1) {
-        printf("Servico nao encontrado!\n");
-        return 0;
-    }
+    if (buscar_servico_por_codigo(servicos, servicos_count, codigo_servico) == -1) return 0;
 
     FILE *relatorio = fopen("relatorio_clientes_ultimo_mes.txt", "w");
     if (relatorio == NULL) {
-        printf("Erro ao criar arquivo de relatorio!\n");
         return 0;
     }
     fprintf(relatorio, "=== CLIENTES QUE CONTRATARAM SERVICO %d NO ULTIMO MES ===\n\n", codigo_servico);
@@ -1125,7 +1120,6 @@ int relatorio_servicos_data_especifica(ClienteServico *cs, int cs_count, Cliente
 
     FILE *relatorio = fopen("relatorio_servicos_data.txt", "w");
     if (relatorio == NULL) {
-        printf("Erro ao criar arquivo de relatorio!\n");
         return 0;
     }
     
@@ -1164,7 +1158,6 @@ int relatorio_servicos_periodo(ClienteServico *cs, int cs_count, Servico *servic
 
     FILE *relatorio = fopen("relatorio_servicos_periodo.txt", "w");
     if (relatorio == NULL) {
-        printf("Erro ao criar arquivo de relatorio!\n");
         return 0;
     }
     fprintf(relatorio, "=== SERVICOS REALIZADOS ENTRE %d/%d/%d E %d/%d/%d ===\n\n", 
@@ -1245,7 +1238,7 @@ int data_no_ultimo_mes(Data data){
     time_t t = time(NULL);
     struct tm *tm_atual = localtime(&t);
 
-    // Cria a data atual e a data limite (um mês atrás)
+    // Aqui converto tm para Data (minha struct)
     Data data_atual = {
         tm_atual->tm_mday,
         tm_atual->tm_mon +1,
