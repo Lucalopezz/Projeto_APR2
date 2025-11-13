@@ -810,8 +810,8 @@ void listar_todos_cliente_servico(ClienteServico *cs, int count, Cliente *client
         printf("Nenhum agendamento cadastrado.\n");
         return;
     }
-    
-    for (int i = 0; i < count; i++) {
+    int i;
+    for (i = 0; i < count; i++) {
         printf("CPF Cliente: %s\n", cs[i].cpf_cliente);
         
         int idx_cli = buscar_cliente_por_cpf(clientes, clientes_count, cs[i].cpf_cliente);
